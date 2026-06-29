@@ -82,19 +82,23 @@ $pdo = null;
                 <div class="video-info">
                     <p>
                         <?php if (!$track): ?>
-                            <span><strong>Date Aired:</strong> <?= $date_aired ?></span>
-                            <span><strong># of Songs:</strong> <?= $karaoke_info['NUM'] ?></span>
+                            <strong>Date Aired:</strong> <?= $date_aired ?><br />
+                            <strong># of Songs:</strong> <?= $karaoke_info['NUM'] ?><br />
+                            <strong>Video Info:</strong>
                             <a
                                 onclick="navigateTo('video', {v: '<?= htmlspecialchars($video_id) ?>'})"
-                                class="btn btn--outline video-link">View Video Info</a>
-                            <a id="desc-link" href="#" class="btn btn--outline desc-link" target="_self">View Description</a>
+                                class="video-link">Link</a><br />
+                            <strong>Description:</strong>
+                            <a id="desc-link" href="#" class="desc-link" target="_self">View Description</a>
                         <?php else: ?>
-                            <span><strong>Video Title:</strong> <?= $video_info['TITLE'] ?></span>
-                            <span><strong>Date Aired:</strong> <?= $date_aired ?></span>
+                            <strong>Video Title:</strong> <?= $video_info['TITLE'] ?><br />
+                            <strong>Date Aired:</strong> <?= $date_aired ?><br />
+                            <strong>Video Info:</strong>
                             <a
                                 onclick="navigateTo('video', {v: '<?= htmlspecialchars($video_id) ?>'})"
-                                class="btn btn--outline video-link">View Video Info</a>
-                            <a id="desc-link" href="#" class="btn btn--outline desc-link">View Description</a>
+                                class="video-link">Link</a><br />
+                            <strong>Description:</strong>
+                            <a id="desc-link" href="#" class="desc-link">View Description</a>
                         <?php endif; ?>
                     </p>
                 </div>
