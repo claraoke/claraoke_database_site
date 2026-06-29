@@ -78,7 +78,7 @@
       mainRow.className = 'main-row';
       mainRow.innerHTML = `
         <td class="col-song"><span class="truncate" title="${item.song} / ${item.artist}">${item.song} / ${item.artist}</span></td>
-        <td class="col-video"><a class="full-link" onclick="navigateTo('video', {v: '${item.videoid}'})" style="justify-content: left;"><span class="truncate" title="${item.video}">${item.video}</span></a></td>
+        <td class="col-video"><a class="full-link" onclick="navigateTo('video', {v: '${item.videoid}'})"><span class="truncate" title="${item.video}">${item.video}</span></a></td>
         <td class="col-date">${item.date}</td>
         <td class="col-link"><a class="full-link" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">Watch</a></td>
       `;
@@ -89,7 +89,11 @@
         <td colspan="4">
           <div><strong>Stream:</strong> <a class="link" onclick="navigateTo('video', {v: '${item.videoid}'})">${item.video}</a></div>
           <div><strong>Date:</strong> ${item.date}</div>
-          <div><strong>Song Link:</strong> <a class="full-link" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">Watch</a></div>
+          <div class="expandable-actions">
+            <button class="btn btn--outline" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">
+              Watch Song
+            </button>
+          </div>
         </td>
       `;
 
