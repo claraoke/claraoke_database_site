@@ -8,6 +8,7 @@
   const descLinkBtn = document.getElementById('desc-link-btn');
   const songListBody = document.getElementById('song-list-body');
   const tableContainer = document.getElementsByClassName('table-container')[0];
+  const descLink = document.getElementById('desc-link');
 
   const urlParams = new URLSearchParams(window.location.search);
   const videoID = urlParams.get('v');
