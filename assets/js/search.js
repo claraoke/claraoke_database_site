@@ -78,7 +78,7 @@
       mainRow.className = 'main-row';
       mainRow.innerHTML = `
         <td class="col-song"><span class="truncate" title="${item.song} / ${item.artist}">${item.song} / ${item.artist}</span></td>
-        <td class="col-video"><a class="full-link" onclick="navigateTo('video', {v: '${item.videoid}'})" style="justify-content: left;"><span class="truncate" title="${item.video}">${item.video}</span></a></td>
+        <td class="col-video"><a class="full-link" onclick="navigateTo('video', {v: '${item.videoid}'})"><span class="truncate" title="${item.video}">${item.video}</span></a></td>
         <td class="col-date">${item.date}</td>
         <td class="col-link"><a class="full-link" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">Watch</a></td>
       `;
@@ -87,9 +87,20 @@
       expandableRow.className = 'expandable-row';
       expandableRow.innerHTML = `
         <td colspan="4">
-          <div><strong>Stream:</strong> <a class="link" onclick="navigateTo('video', {v: '${item.videoid}'})">${item.video}</a></div>
+          <div><strong>Stream:</strong> ${item.video}</div>
           <div><strong>Date:</strong> ${item.date}</div>
-          <div><strong>Song Link:</strong> <a class="full-link" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">Watch</a></div>
+          <div class="expandable-actions">
+            <div>
+              <button class="btn btn--outline" onclick="navigateTo('video', {v: '${item.videoid}'})">
+                Stream Info
+              </button>
+            </div>
+            <div>
+              <button class="btn btn--outline" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">
+                Watch Song
+              </button>
+            </div
+          </div>
         </td>
       `;
 
@@ -208,9 +219,12 @@
           header.classList.toggle('sorted-asc', !isAsc);
           header.classList.toggle('sorted-desc', isAsc);
 
-          rows.forEach((row) => tbody.appendChild(row));
-          rows.forEach((row, i) => {
-            row.style.backgroundColor = i % 2 === 0 ? '#0375d8' : '#1086ef';
+          rows.forEach((row) => {
+            const expandable = row.nextElementSibling;
+            tbody.appendChild(row);
+            if (expandable && expandable.classList.contains('expandable-row')) {
+              tbody.appendChild(expandable);
+            }
           });
         });
       }

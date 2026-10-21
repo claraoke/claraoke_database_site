@@ -14,28 +14,31 @@
 
       <form id="searchForm" class="searchbar" autocomplete="off">
         <input id="searchQuery" type="text" name="q" placeholder="Search…" />
-        <button class="btn btn--outline" type="submit">Search</button>
-        <button
-          class="btn btn--outline"
-          type="button"
-          onclick="
-            const searchInput = document.getElementById('searchQuery');
-            const resultsBody = document.getElementById('resultsBody');
+        <div>
+          <button class="btn btn--outline" type="submit">Search</button>
+          <button
+            class="btn btn--outline"
+            type="button"
+            onclick="
+              const searchInput = document.getElementById('searchQuery');
+              const resultsBody = document.getElementById('resultsBody');
 
-            // Clear the input
-            searchInput.value = '';
+              // Clear the input
+              searchInput.value = '';
 
-            // Reset search state
-            hasSearched = false;
+              // Reset search state
+              hasSearched = false;
 
-            // Reset table to default message
-            resultsBody.innerHTML = '<tr><td colspan=&quot;4&quot;>Enter a query to begin.</td></tr>';
+              // Reset table to default message
+              resultsBody.innerHTML =
+                '<tr><td colspan=&quot;4&quot;>Enter a query to begin.</td></tr>';
 
-            // Clear stats
-            resultsStats.innerHTML = '';
-          ">
-          Clear
-        </button>
+              // Clear stats
+              resultsStats.innerHTML = '';
+            ">
+            Clear
+          </button>
+        </div>
       </form>
       <span id="resultsStats"></span>
 
@@ -44,7 +47,7 @@
       <div
         class="table-container"
         id="resultsContainer"
-        style="max-height: calc(100vh - 547px)">
+        style="max-height: calc(100dvh - 547px)">
         <table
           class="table table--search"
           aria-describedby="progress"
