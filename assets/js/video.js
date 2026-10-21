@@ -1,15 +1,16 @@
-document.addEventListener('DOMContentLoaded', () => {
+(function () {
   const videoContainer = document.getElementById('video-container');
   const videoTitle = document.getElementById('video-title');
   const videoThumbnail = document.getElementById('video-thumbnail');
   const videoDate = document.getElementById('video-date');
   const videoSongsCount = document.getElementById('video-songs-count');
-  const videoLink = document.getElementById('video-link');
+  const videoLinkBtn = document.getElementById('video-link-btn');
+  const descLinkBtn = document.getElementById('desc-link-btn');
   const songListBody = document.getElementById('song-list-body');
   const tableContainer = document.getElementsByClassName('table-container')[0];
 
   const urlParams = new URLSearchParams(window.location.search);
-  const videoID = urlParams.get('videoID');
+  const videoID = urlParams.get('v');
 
   if (!videoID) {
     videoContainer.innerHTML = '<h2>No videoID provided</h2>';
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadVideo() {
     try {
-      const res = await fetch(`../php/video.php?videoID=${videoID}`, {
+      const res = await fetch(`php/video.php?videoID=${videoID}`, {
         cache: 'no-store',
       });
       if (!res.ok) {
@@ -32,30 +33,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
       videoTitle.textContent = data.video_info.TITLE || 'Unknown Title';
 
-      const thumbnail_url = `https://img.youtube.com/vi/${encodeURIComponent(videoID)}/mqdefault.jpg`;
-      videoThumbnail.innerHTML = `<img src="${thumbnail_url}" alt="Video Thumbnail" height="150px" width="200px" title="${data.video_info.TITLE || ''}" />`;
+      const thumbnail_url = `assets/images/video_thumbnails_l/${encodeURIComponent(videoID)}.jpg`;
+      videoThumbnail.innerHTML = `<img src="${thumbnail_url}" alt="Video Thumbnail" width="200px" height="113px" title="${data.video_info.TITLE || ''}" />`;
 
       videoDate.textContent = data.date_aired || 'Unknown';
       videoSongsCount.textContent = data.karaoke_info.NUM || 0;
-      videoLink.href = `https://www.youtube.com/watch?v=${encodeURIComponent(videoID)}`;
+
+      if (videoLinkBtn) {
+        videoLinkBtn.onclick = () => navigateTo('watch', { v: videoID });
+      }
+
+      if (descLinkBtn) {
+        descLinkBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const res = await fetch(`php/description.php?videoID=${videoID}`);
+          const data = await res.json();
+          document.getElementById('description-body').textContent =
+            data.description || 'No description available.';
+          document.getElementById('description-modal').style.display = 'block';
+        });
+      }
+
+      // Close modal
+      const closeBtn = document.getElementById('description-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          document.getElementById('description-modal').style.display = 'none';
+        });
+      }
+      const overlay = document.getElementById('description-overlay');
+      if (overlay) {
+        overlay.addEventListener('click', () => {
+          document.getElementById('description-modal').style.display = 'none';
+        });
+      }
 
       songListBody.innerHTML = ''; // Clear existing rows
       if (data.songs && data.songs.length > 0) {
         data.songs.forEach((song) => {
-          const timestamp = song.STARTTIME.replace(
-            /(\d{2}):(\d{2}):(\d{2})/,
-            '$1h$2m$3s'
-          );
+          const mainRow = document.createElement('tr');
+          mainRow.className = 'main-row';
+          mainRow.innerHTML = `
+            <td class="col-song"><span class="truncate" title="${song.TITLE} / ${song.ARTIST}">${song.TITLE} / ${song.ARTIST}</span></td>
+            <td class="col-link clickable-cell"><a class="full-link" onclick="navigateTo('watch', {v: '${videoID}', t: '${song.START_SECONDS}'})">Watch</a></td>
+          `;
 
-          const song_link = `https://www.youtube.com/watch?v=${encodeURIComponent(videoID)}&t=${encodeURIComponent(timestamp)}`;
+          const expandableRow = document.createElement('tr');
+          expandableRow.className = 'expandable-row';
+          expandableRow.innerHTML = `
+            <td colspan="2">
+              <div class="expandable-actions">
+                <button class="btn btn--outline" onclick="navigateTo('watch', {v: '${videoID}', track: '${song.TRACK}', t: '${song.START_SECONDS}'})">
+                  Watch Song
+                </button>
+              </div>
+            </td>
+          `;
 
-          const row = document.createElement('tr');
-          row.innerHTML = `
-                        <td><span class="truncate" title="${song.TITLE || ''}">${song.TITLE || 'Unknown Title'}</span></td>
-                        <td><span class="truncate" title="${song.ARTIST || ''}" style="min-width: 300px">${song.ARTIST || 'Unknown Artist'}</span></td>
-                        <td class="clickable-cell"><a href="${song_link}" class="full-link" target="_blank" rel="noopener">Link</a></td>
-                    `;
-          songListBody.appendChild(row);
+          songListBody.appendChild(mainRow);
+          songListBody.appendChild(expandableRow);
+
+          mainRow.addEventListener('click', () => {
+            expandableRow.classList.toggle('is-visible');
+          });
         });
 
         if (!window.matchMedia('(min-width: 769px)').matches) {
@@ -64,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="3">No songs found for this video.</td>`;
+        row.innerHTML = `<td colspan="2">No songs found for this video.</td>`;
         songListBody.appendChild(row);
       }
     } catch (err) {
@@ -73,4 +113,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadVideo();
-});
+})();

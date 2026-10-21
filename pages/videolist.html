@@ -3,34 +3,39 @@
   <head>
     <meta charset="utf-8" />
     <title>Video List</title>
-    <link rel="stylesheet" href="../assets/css/style.css" type="text/css" />
+    <link rel="stylesheet" href="assets/css/style.css" type="text/css" />
   </head>
-  <body style="padding: 1.25rem">
-    <div class="table-container" style="max-height: calc(100vh - 40px)">
-      <table class="table" id="videoTable">
-        <colgroup>
-          <col width="67px" />
-          <col style="min-width: 150px" />
-          <col width="140px" />
-          <col width="140px" />
-          <col width="120px" />
-        </colgroup>
+  <body>
+    <div
+      class="table-container"
+      id="videoListContainer"
+      style="max-height: calc(100dvh - 375px)">
+      <table class="table table--videolist" id="videoTable">
         <thead>
           <tr>
-            <th scope="col" colspan="2" data-type="string">
+            <th scope="col" class="col-thumb"></th>
+            <th scope="col" class="col-title" data-type="string">
               Video Title (Click to view video song list)
             </th>
             <th
               scope="col"
               data-type="date"
-              class="sorted-desc"
+              class="col-date sorted-desc"
               style="text-align: center">
               Date Aired
             </th>
-            <th scope="col" data-type="number" style="text-align: center">
+            <th
+              scope="col"
+              class="col-songs"
+              data-type="number"
+              style="text-align: center">
               # of Songs
             </th>
-            <th scope="col" data-type="string" style="text-align: center">
+            <th
+              scope="col"
+              class="col-link"
+              data-type="string"
+              style="text-align: center">
               Video Link
             </th>
           </tr>
@@ -43,6 +48,6 @@
       </table>
     </div>
 
-    <script src="../assets/js/videolist.js"></script>
+    <script src="assets/js/videolist.js"></script>
   </body>
 </html>

@@ -4,56 +4,45 @@
   const resultsBody = document.getElementById('resultsBody');
   const progress = document.getElementById('progress');
   const resultsStats = document.getElementById('resultsStats');
+  const table = document.getElementById('resultsTable');
+  const tbody = document.getElementById('resultsBody');
 
-  // Resize the table, max 1025px wide, 4 columns, col 1+2 flexible max width 860px together
-  // col3 100px, col4 65px
-  // Total min width = 250 + 150 + 100 + 65 = 565px
-  // Total max width = 560 + 300 + 100 + 65 = 1025px
+  // ─── Table resize ─────────────────────────────────────────────────────────
   function resizeTable() {
     const container = document.getElementById('resultsContainer');
-    if (!container) return;
-    const table = document.getElementById('resultsTable');
-    if (!table) return;
+    if (!container || !table) return;
 
     const containerWidth = Math.min(container.offsetWidth, 1000);
-
     const col3Width = 110;
     const col4Width = 65;
     const maxCol1Col2 = 825;
     const minCol1Width = 250;
     const maxCol1Width = 500;
 
-    // Create a canvas for measuring text width
     const ctx = document.createElement('canvas').getContext('2d');
-    ctx.font = getComputedStyle(table).font; // use table font
+    ctx.font = getComputedStyle(table).font;
 
-    // find max content width in col1
     let maxContentWidth = 0;
     table.querySelectorAll('tr').forEach((row) => {
       const cell = row.children[0];
       if (!cell) return;
       const text = cell.innerText || cell.textContent;
-      const width = ctx.measureText(text).width + 20; // add some padding
+      const width = ctx.measureText(text).width + 20;
       if (width > maxContentWidth) maxContentWidth = width;
     });
 
-    // clamp col1 width between min and max
     let col1Width = Math.min(
       Math.max(maxContentWidth, minCol1Width),
       maxCol1Width
     );
-
-    // remaining width for col2
     let remaining = containerWidth - col3Width - col4Width;
     let col2Width = remaining - col1Width;
 
-    // ensure combined col1+col2 does not exceed maxCol1Col2
     if (col1Width + col2Width > maxCol1Col2) {
       col2Width = maxCol1Col2 - col1Width;
     }
     col2Width = Math.max(col2Width, 0);
 
-    // apply widths
     table.querySelectorAll('tr').forEach((row) => {
       const cells = row.children;
       if (cells.length < 4) return;
@@ -64,11 +53,12 @@
     });
   }
 
+  // ─── Loading state ────────────────────────────────────────────────────────
   function setLoading(on) {
-    if (on) progress.classList.add('is-active');
-    else progress.classList.remove('is-active');
+    progress.classList.toggle('is-active', on);
   }
 
+  // ─── Render rows ──────────────────────────────────────────────────────────
   let hasSearched = false;
 
   function renderRows(items) {
@@ -88,18 +78,29 @@
       mainRow.className = 'main-row';
       mainRow.innerHTML = `
         <td class="col-song"><span class="truncate" title="${item.song} / ${item.artist}">${item.song} / ${item.artist}</span></td>
-        <td class="col-video"><a href="../pages/video.html?videoID=${item.videoid}" target="_self" class="full-link" style="justify-content: left;"><span class="truncate" title="${item.video}">${item.video}</span></a></td>
+        <td class="col-video"><a class="full-link" onclick="navigateTo('video', {v: '${item.videoid}'})"><span class="truncate" title="${item.video}">${item.video}</span></a></td>
         <td class="col-date">${item.date}</td>
-        <td class="col-link"><a href="${item.link}" class="full-link" target="_blank" rel="noopener">Link</a></td>
+        <td class="col-link"><a class="full-link" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">Watch</a></td>
       `;
 
       const expandableRow = document.createElement('tr');
       expandableRow.className = 'expandable-row';
       expandableRow.innerHTML = `
         <td colspan="4">
-          <div><strong>Stream:</strong> <a href="../pages/video.html?videoID=${item.videoid}" target="_self" class="link">${item.video}</a></div>
+          <div><strong>Stream:</strong> ${item.video}</div>
           <div><strong>Date:</strong> ${item.date}</div>
-          <div><strong>Song Link:</strong> <a href="${item.link}" target="_blank" rel="noopener" class="link">YouTube</a></div>
+          <div class="expandable-actions">
+            <div>
+              <button class="btn btn--outline" onclick="navigateTo('video', {v: '${item.videoid}'})">
+                Stream Info
+              </button>
+            </div>
+            <div>
+              <button class="btn btn--outline" onclick="navigateTo('watch', {v: '${item.videoid}', t: '${item.start_seconds}'})">
+                Watch Song
+              </button>
+            </div
+          </div>
         </td>
       `;
 
@@ -112,6 +113,7 @@
     }
   }
 
+  // ─── Result stats ─────────────────────────────────────────────────────────
   function displayStats(data) {
     if (!data || !data.items || data.items.length === 0) {
       resultsStats.innerHTML = '';
@@ -124,14 +126,15 @@
     } for "<em>${query}</em>"`;
   }
 
+  // ─── Search ───────────────────────────────────────────────────────────────
   async function doSearch(q) {
-    if (!q) return; // optional: ignore empty queries
-
-    hasSearched = true; // mark that a search has been performed
-
+    if (!q) return;
+    hasSearched = true;
     setLoading(true);
+
     try {
-      const res = await fetch('../php/search.php', {
+      const res = await fetch('php/search.php', {
+        // root-relative
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ q }),
@@ -140,12 +143,11 @@
       const data = await res.json();
       displayStats(data || []);
       renderRows(data.items || []);
+
       if (window.matchMedia('(min-width: 769px)').matches) {
-        resizeTable(); // Resize table only on desktop
+        resizeTable();
       } else {
-        // On mobile we need to set the column with class "col-song" to a colspan of 4
-        const songCols = document.querySelectorAll('.col-song');
-        songCols.forEach((col) => {
+        document.querySelectorAll('.col-song').forEach((col) => {
           col.colSpan = 4;
         });
       }
@@ -158,97 +160,81 @@
     }
   }
 
+  // ─── Form submit ──────────────────────────────────────────────────────────
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      doSearch(input.value.trim());
+      const q = input.value.trim();
+      // Update the URL so it's shareable
+      const qs = new URLSearchParams({ q }).toString();
+      window.history.pushState(
+        { page: 'search', params: { q } },
+        '',
+        `/search?${qs}`
+      );
+      doSearch(q);
     });
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('searchQuery');
+  // ─── Sorting ──────────────────────────────────────────────────────────────
+  if (table) {
+    const headers = table.querySelectorAll('thead th');
 
-    const params = new URLSearchParams(window.location.search);
-    const rawQuery = params.get('q');
-    if (rawQuery) {
-      // decodeURIComponent converts %27 → '
-      const query = decodeURIComponent(rawQuery);
+    headers.forEach((header, index) => {
+      const type = header.getAttribute('data-type');
+      const sortable = header.getAttribute('data-sortable');
 
-      // Optional: convert HTML entities to normal characters
-      const temp = document.createElement('textarea');
-      temp.innerHTML = query; // decode HTML entities like &#039;
-      const finalQuery = temp.value;
+      if (type === 'date' || (type === 'string' && sortable === 'true')) {
+        header.style.cursor = 'pointer';
 
-      document.getElementById('searchQuery').value = finalQuery;
+        header.addEventListener('click', () => {
+          const rows = Array.from(tbody.querySelectorAll('.main-row'));
+          const isAsc = header.classList.contains('sorted-asc');
 
-      doSearch(finalQuery);
-    }
-  });
+          rows.sort((a, b) => {
+            let aText = a.children[index].textContent.trim();
+            let bText = b.children[index].textContent.trim();
+
+            if (type === 'number') {
+              return isAsc
+                ? (parseFloat(bText) || 0) - (parseFloat(aText) || 0)
+                : (parseFloat(aText) || 0) - (parseFloat(bText) || 0);
+            }
+            if (type === 'date') {
+              return isAsc
+                ? new Date(bText) - new Date(aText)
+                : new Date(aText) - new Date(bText);
+            }
+            if (type === 'string') {
+              return isAsc
+                ? bText.localeCompare(aText)
+                : aText.localeCompare(bText);
+            }
+            return 0;
+          });
+
+          headers.forEach((h) =>
+            h.classList.remove('sorted-asc', 'sorted-desc')
+          );
+          header.classList.toggle('sorted-asc', !isAsc);
+          header.classList.toggle('sorted-desc', isAsc);
+
+          rows.forEach((row) => {
+            const expandable = row.nextElementSibling;
+            tbody.appendChild(row);
+            if (expandable && expandable.classList.contains('expandable-row')) {
+              tbody.appendChild(expandable);
+            }
+          });
+        });
+      }
+    });
+  }
+
+  // ─── Boot: run search if ?q= is in the URL ────────────────────────────────
+  const rawQuery = new URLSearchParams(window.location.search).get('q');
+  if (rawQuery) {
+    if (input) input.value = rawQuery; // URLSearchParams.get() already decodes %20 → space
+    doSearch(rawQuery);
+  }
 })();
-
-document.addEventListener('DOMContentLoaded', () => {
-  const table = document.getElementById('resultsTable');
-  const tbody = document.getElementById('resultsBody');
-
-  // ========================
-  // Sorting logic
-  // ========================
-  if (!table) return;
-
-  const headers = table.querySelectorAll('thead th');
-
-  headers.forEach((header, index) => {
-    const type = header.getAttribute('data-type');
-    const sortable = header.getAttribute('data-sortable');
-
-    // Only enable sorting for date columns or string columns marked sortable
-    if (type === 'date' || (type === 'string' && sortable === 'true')) {
-      header.style.cursor = 'pointer';
-
-      header.addEventListener('click', () => {
-        const rows = Array.from(tbody.querySelectorAll('.main-row'));
-        const isAsc = header.classList.contains('sorted-asc');
-
-        rows.sort((a, b) => {
-          let aText = a.children[index].textContent.trim();
-          let bText = b.children[index].textContent.trim();
-
-          if (type === 'number') {
-            let aNum = parseFloat(aText) || 0;
-            let bNum = parseFloat(bText) || 0;
-            return isAsc ? bNum - aNum : aNum - bNum;
-          }
-
-          if (type === 'date') {
-            let aDate = new Date(aText);
-            let bDate = new Date(bText);
-            return isAsc ? bDate - aDate : aDate - bDate;
-          }
-
-          if (type === 'string') {
-            return isAsc
-              ? bText.localeCompare(aText)
-              : aText.localeCompare(bText);
-          }
-
-          return 0;
-        });
-
-        // Reset arrows
-        headers.forEach((h) => h.classList.remove('sorted-asc', 'sorted-desc'));
-
-        // Toggle sort direction
-        header.classList.toggle('sorted-asc', !isAsc);
-        header.classList.toggle('sorted-desc', isAsc);
-
-        // Apply sorted rows
-        rows.forEach((row) => tbody.appendChild(row));
-
-        // Fix row background color after sorting
-        rows.forEach((row, i) => {
-          row.style.backgroundColor = i % 2 === 0 ? '#0375d8' : '#1086ef';
-        });
-      });
-    }
-  });
-});

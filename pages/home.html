@@ -3,33 +3,41 @@
   <head>
     <meta charset="utf-8" />
     <title>Home</title>
-    <link rel="stylesheet" href="../assets/css/style.css" type="text/css" />
-    <link rel="preload" href="/data/stats.json" as="fetch" crossorigin />
+    <link rel="stylesheet" href="assets/css/style.css" type="text/css" />
+    <link rel="preload" href="data/stats.json" as="fetch" crossorigin />
   </head>
-  <body class="content-wrap" style="padding: 1.25rem">
-    <section>
-      <h2 style="margin-top: 0" class="page-title">
-        Welcome to the Claraoke Database
-      </h2>
-      <p>
-        This site allows you to search a database of almost every karaoke song
-        that Clara has sung with links to listen to from archived streams. The
-        menu to the left has options to search as well as view a full listing of
-        databased streams and their song list.
-      </p>
-      <p style="font-style: italic">
-        Disclaimer: This database is no where near perfect, there have been many
-        different contributors, who each have their own style of formatting
-        their timestamp lists. Check the About page for more information.
-      </p>
-      <p>To start here are some statistics from the database:</p>
-    </section>
-    <span id="stats" aria-busy="true" aria-live="polite">
-      <div class="loading-wrapper">
-        <span class="spinner"></span> Loading stats...
-      </div>
-    </span>
+  <body>
+    <div class="content-wrap">
+      <section>
+        <h2 style="margin-top: 0" class="page-title">
+          Welcome to the Claraoke Database
+        </h2>
+        <p>
+          The site currently has the ability to watch any of the 100 archived
+          karaoke vods with song level playback as well as ability to view
+          archived descriptions for each video.
+        </p>
+        <p>
+          This site allows you to search a database of almost every karaoke song
+          that Clara has sung with links to listen to from archived streams. The
+          menu to the left has options to search as well as view a full listing
+          of databased streams and their song list.
+        </p>
+        <p style="font-style: italic">
+          Disclaimer: This database is no where near perfect, there have been
+          many different contributors, who each have their own style of
+          formatting their timestamp lists. Check the About page for more
+          information.
+        </p>
+        <p>To start here are some statistics from the database:</p>
+      </section>
+      <span id="stats" aria-busy="true" aria-live="polite">
+        <div class="loading-wrapper">
+          <span class="spinner"></span> Loading stats...
+        </div>
+      </span>
+    </div>
 
-    <script src="../assets/js/home.js"></script>
+    <script src="assets/js/home.js"></script>
   </body>
 </html>

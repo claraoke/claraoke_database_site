@@ -22,6 +22,7 @@
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
 
@@ -34,11 +35,12 @@
 * {
   box-sizing: border-box;
 }
-html,
-body {
+html {
   height: 100%;
 }
 body {
+  height: 100dvh;
+  overflow: hidden;
   margin: 0;
   font-family:
     system-ui,
@@ -49,11 +51,17 @@ body {
     sans-serif;
   color: var(--text-100);
   background: var(--color-300);
+  display: flex;
+  flex-direction: column;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+a:not([href]) {
+  cursor: pointer;
 }
 
 .link {
@@ -124,21 +132,36 @@ a {
    Layout
    ========================= */
 .layout {
-  display: grid;
-  grid-template-columns: 275px 1fr;
   gap: var(--space-6);
   max-width: var(--maxw);
-  margin: var(--space-6) auto;
-  padding: 0 var(--space-6);
+  margin: 0 auto;
+  padding: var(--space-6);
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* =========================
    Sidebar
    ========================= */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1500;
+  backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.is-active {
+  display: block;
+}
+
 .sidebar {
-  position: sticky;
-  top: 84px;
-  align-self: start;
   background: var(--color-200);
   border: 1px solid var(--color-600);
   border-radius: var(--radius-md);
@@ -147,6 +170,9 @@ a {
   flex-direction: column;
   gap: var(--space-4);
   min-height: 50vh;
+  min-width: 275px;
+  overflow-y: auto;
+  align-self: start;
 }
 
 .nav {
@@ -193,11 +219,14 @@ a {
 }
 
 /* =========================
-   Main (iframe) area
+   Main area
    ========================= */
 .main {
-  min-height: 60vh;
-  padding-bottom: var(--space-4);
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-title {
@@ -206,47 +235,41 @@ a {
   color: black;
 }
 
-/* =========================
-   Iframe Loading Overlay
-   ========================= */
-.iframe-wrap {
+.main-wrap {
   position: relative;
-  background: var(--color-200);
   border: 1px solid var(--color-600);
   border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.iframe-wrap iframe,
-#mainframe {
+  overflow-y: auto;
+  min-height: 0; /* critical in flex/grid children — lets it shrink below content size */
+  flex: 1; /* grow to fill remaining space in .layout */
   width: 100%;
-  height: 70vh;
-  border: 0;
-  display: block;
-  background: var(--color-300);
-  color: var(--text-100);
-}
-
-/* overlay covers iframe until it's ready */
-.iframe-loading {
-  position: absolute;
-  inset: 0; /* top:0; right:0; bottom:0; left:0; shorthand */
-  background: rgba(10, 23, 106, 0.8); /* semi-transparent background */
-  color: var(--accent-yellow);
-  font-size: 1.1rem;
-  font-weight: 500;
+  min-width: 0;
+  padding: var(--space-5);
+  background: var(--color-200);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  transition: opacity 0.25s ease;
-  opacity: 0;
-  pointer-events: none;
+  flex-direction: column;
 }
 
-.iframe-loading.is-active {
-  opacity: 1;
-  pointer-events: all;
+.main-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  min-width: 0;
+  /* optional fade on page load */
+  transition: opacity 0.15s ease;
+}
+
+#main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Forces children like #player-wrap to expand fully */
+  width: 100%;
+}
+
+.main-content.is-loading {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .content-wrap {
@@ -258,7 +281,6 @@ a {
    Footer
    ========================= */
 .site-footer {
-  margin-top: var(--space-8);
   background: var(--color-200);
   border-top: 1px solid var(--color-600);
   padding: var(--space-4);
@@ -369,6 +391,9 @@ a {
   color: var(--accent-yellow);
   text-align: left;
   font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .table tbody tr:nth-child(odd) {
   background-color: var(--color-400);
@@ -386,6 +411,20 @@ a {
   min-width: 565px;
 }
 
+.table--videolist {
+  min-width: 750px;
+}
+
+.col-thumb {
+  width: 85px;
+  text-align: center;
+}
+
+.col-songs {
+  width: 140px;
+  text-align: center;
+}
+
 th.sorted-asc::after {
   content: ' ▲';
 }
@@ -394,32 +433,8 @@ th.sorted-desc::after {
 }
 .list-thumbnail {
   vertical-align: middle;
-  clip-path: inset(6px 0 6px 0);
   border: 1px solid var(--color-600);
-}
-/* =========================
-   Responsive
-   ========================= */
-@media (max-width: 960px) {
-  .layout {
-    grid-template-columns: 1fr;
-    padding: 0 var(--space-4);
-  }
-  .menu-toggle {
-    display: inline-block;
-  }
-  .sidebar {
-    position: static;
-    display: none;
-    top: auto;
-  }
-  .sidebar.is-open {
-    display: block;
-  }
-  .iframe-wrap iframe,
-  #mainframe {
-    height: 65vh;
-  }
+  margin: 0.25rem 0;
 }
 
 /* =========================
@@ -445,7 +460,7 @@ th.sorted-desc::after {
   justify-content: flex-start; /* or center, if you want centered text */
   width: 100%;
   height: 100%;
-  min-height: 51px;
+  min-height: 46px;
   padding: 0 0.5rem; /* reapply same padding as table cell */
   box-sizing: border-box;
   color: inherit;
@@ -489,7 +504,7 @@ th.sorted-desc::after {
 .video-item {
   display: flex;
   flex-direction: column; /* title on top */
-  background: var(--color-200);
+  background: var(--color-300);
   border: 1px solid var(--color-600);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
@@ -500,6 +515,7 @@ th.sorted-desc::after {
 
 .video-title {
   width: 100%;
+  min-width: 100%;
   margin: 0 0 10px 0;
   height: 1em;
   line-height: 1;
@@ -517,14 +533,28 @@ th.sorted-desc::after {
 .video-info {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  /* remove flex: 1 */
+  gap: var(--space-4);
   margin: 0; /* ensures top alignment */
+  flex: 1;
 }
 
-.video-info p {
-  margin: 0; /* remove all default margins */
-  line-height: 1.4; /* optional, improves readability */
+.video-info-stats {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: 0.95rem;
+}
+
+.video-info-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.video-info-actions .btn {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.8rem;
 }
 
 .video-thumb img {
@@ -534,22 +564,77 @@ th.sorted-desc::after {
   object-fit: cover;
 }
 
-.video-link {
+.video-link,
+.desc-link {
   text-decoration: none;
 }
 
-.video-link:hover {
+.video-link:hover,
+.desc-link:hover {
   text-decoration: underline;
-}
-
-.song-list {
-  height: calc(100% - 6px);
-  overflow-y: auto;
 }
 
 .table--search td.clickable-cell .full-link {
   justify-content: center;
   min-height: 34px;
+}
+
+#description-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+}
+
+#description-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  background: var(--color-200);
+  border: 1px solid var(--color-600);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  width: min(600px, 95vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#description-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-600);
+  background: var(--color-600);
+  color: var(--accent-yellow);
+  border-radius: 0;
+}
+
+#description-close {
+  background: none;
+  border: none;
+  color: var(--accent-yellow);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+#description-body {
+  padding: var(--space-4);
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+#description-modal {
+  display: none;
+}
+#description-modal.is-visible {
+  display: block;
 }
 
 /* =========================
@@ -584,12 +669,13 @@ th.sorted-desc::after {
 }
 
 .col-date {
-  width: 100px;
+  width: 140px;
   text-align: center;
 }
 
 .col-link {
-  width: 65px;
+  width: 120px;
+  text-align: center;
   position: relative;
   padding: 0;
 }
@@ -599,6 +685,10 @@ th.sorted-desc::after {
   display: flex;
   align-items: center; /* vertical alignment */
   justify-content: center;
+}
+
+.table--search td.col-video .full-link {
+  justify-content: flex-start;
   width: 100%;
   height: 100%;
   min-height: 34px;
@@ -614,9 +704,10 @@ th.sorted-desc::after {
 }
 
 /* =========================
-   Responsive Search Table
+   Search Results Table (Main/Expandable logic)
    ========================= */
-.table--search tbody tr.expandable-row {
+.table--search tbody tr.expandable-row,
+.table--videolist tbody tr.expandable-row {
   display: none;
 }
 
@@ -631,38 +722,152 @@ th.sorted-desc::after {
   The default tr:nth-child(odd) rule makes all main-rows the same color.
   This override targets the 2nd, 4th, 6th... main-row and gives it the "even" color.
 */
-.table--search tbody tr.main-row:nth-child(4n + 3) {
+.table--search tbody tr.main-row:nth-child(4n + 3),
+.table--videolist tbody tr.main-row:nth-child(4n + 3) {
   background-color: var(--color-300);
 }
 
+/* =========================
+   Responsive Overrides
+   ========================= */
 @media (max-width: 768px) {
+  .layout {
+    padding: 0;
+    gap: 0;
+    margin: 0;
+    max-width: none;
+    background-color: var(--color-200);
+  }
+
+  .site-footer {
+    font-size: 0.75rem;
+    padding: 0 var(--space-2);
+  }
+
+  .menu-toggle {
+    display: inline-block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 65px; /* height of header approx */
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 2000;
+    display: none;
+    border-radius: 0;
+    border-top: none;
+    border-left: none;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.is-open {
+    display: flex;
+  }
+
+  .main-wrap {
+    padding: var(--space-3);
+    border: none;
+    border-radius: 0;
+    max-height: calc(100dvh - 69px);
+  }
+
   .table-container {
     overflow-x: auto;
+    margin-bottom: var(--space-4);
   }
 
   .searchbar {
-    flex-wrap: nowrap;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .table--search thead {
+  .searchbar input[type='text'] {
+    width: 100%;
+    flex: none;
+  }
+
+  .searchbar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .searchbar > div {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .searchbar > div .btn {
+    flex: 1;
+  }
+
+  /* Table specific mobile overrides */
+  #resultsContainer,
+  #videoListContainer,
+  #songListContainer {
+    max-height: none !important;
+  }
+
+  .table--search,
+  .table--videolist {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .table--search thead,
+  .table--videolist thead {
     display: none;
   }
 
-  .table--search tbody tr.main-row {
+  .table--search tbody tr.main-row,
+  .table--videolist tbody tr.main-row {
     cursor: pointer;
   }
 
-  .table--search tbody tr.main-row:hover {
+  .table--search tbody tr.main-row:hover,
+  .table--videolist tbody tr.main-row:hover {
     background-color: var(--color-500);
   }
 
-  .table--search tbody tr.expandable-row.is-visible {
+  .table--search tbody tr.expandable-row.is-visible,
+  .table--videolist tbody tr.expandable-row.is-visible {
     display: table-row;
   }
 
-  .table--search tbody tr.expandable-row td {
-    padding: var(--space-2);
-    background-color: var(--color-200);
+  .table--search tbody tr.expandable-row td,
+  .table--videolist tbody tr.expandable-row td {
+    padding: var(--space-4);
+    background-color: var(--color-300);
+    border-bottom: 2px solid var(--color-600);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .table--search tbody tr.expandable-row div,
+  .table--videolist tbody tr.expandable-row div {
+    margin-bottom: var(--space-2);
+  }
+
+  /* Disable link navigation on thumb/title cells — row tap expands instead */
+  .table--videolist tbody tr.main-row td.col-thumb .full-link,
+  .table--videolist tbody tr.main-row td.col-title .full-link {
+    pointer-events: none;
+  }
+
+  .table--search tbody tr.expandable-row .expandable-actions,
+  .table--videolist tbody tr.expandable-row .expandable-actions {
+    margin-top: var(--space-3);
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+  }
+
+  .table--search tbody tr.expandable-row .btn,
+  .table--videolist tbody tr.expandable-row .btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .table--search .col-video,
@@ -671,26 +876,92 @@ th.sorted-desc::after {
     display: none;
   }
 
-  .table--search .col-song {
+  .table--videolist .col-date,
+  .table--videolist .col-songs,
+  .table--videolist .col-link {
+    display: none;
+  }
+
+  .table--search .col-song,
+  .table--videolist .col-title {
     display: table-cell;
     width: 100%;
     max-width: 100%;
     padding: var(--space-2);
   }
-}
 
-/* =========================
-   Responsive Video Page
-   ========================= */
-@media (max-width: 768px) {
+  .table--videolist .col-thumb {
+    display: table-cell;
+    width: 85px;
+    padding: var(--space-2);
+  }
+
+  /* Video Page mobile overrides */
   .video-body {
     flex-direction: column;
+    align-items: center;
   }
   .video-thumb {
     align-self: center;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .video-thumb img {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+  }
+  .video-info {
+    width: 100%;
+    text-align: center;
+  }
+  .video-info-stats {
+    justify-content: center;
+    flex-direction: row;
+  }
+  .video-info-actions {
+    justify-content: center;
+    flex-direction: row;
+  }
+  .video-info .btn {
+    width: 100%;
+    justify-content: center;
   }
   .table-container {
     overflow-x: auto;
-    max-height: calc(100vh - 350px);
+    max-height: calc(100dvh - 350px);
   }
+}
+
+/* =========================
+   Video Player
+   ========================= */
+#player-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  width: 100%;
+  min-width: 100%; /* Completely disables max-content shrink-wrapping */
+  align-self: stretch; /* Forces it to match the parent's width */
+}
+
+.player-header {
+  display: flex;
+  flex-direction: column; /* title on top */
+  background: var(--color-300);
+  border: 1px solid var(--color-600);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: 10px;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.player-container {
+  min-width: 100%; /* Provides a hard boundary for Video.js to fill */
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #000;
 }
