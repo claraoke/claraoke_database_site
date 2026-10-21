@@ -133,7 +133,7 @@
     setLoading(true);
 
     try {
-      const res = await fetch('php/search.php', {
+      const res = await fetch('/api/search', {
         // root-relative
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

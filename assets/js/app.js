@@ -6,7 +6,7 @@
     videolist: 'pages/videolist.html',
     about: 'pages/about.html',
     video: 'pages/video.html',
-    watch: 'php/watch.php',
+    watch: 'pages/watch.html',
   };
   const DEFAULT_PAGE = 'home';
 
@@ -96,7 +96,13 @@
 
   // ─── Fetch an HTML file and inject its <body> into #main-content ─────────
   async function loadPage(filePath) {
-    // Destroy any videojs instance before wiping the DOM
+    // Clean up page-specific resources before replacing the DOM.
+    if (typeof window.__watchCleanup === 'function') {
+      window.__watchCleanup();
+      delete window.__watchCleanup;
+    }
+
+    // Destroy any Video.js instance before wiping the DOM.
     if (window.videojs) {
       const existingPlayer = videojs.getPlayer('player');
       if (existingPlayer) existingPlayer.dispose();

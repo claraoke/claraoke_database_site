@@ -20,9 +20,10 @@
 
   async function loadVideo() {
     try {
-      const res = await fetch(`php/video.php?videoID=${videoID}`, {
-        cache: 'no-store',
-      });
+      const res = await fetch(
+        `/api/video?videoID=${encodeURIComponent(videoID)}`,
+        { cache: 'no-store' }
+      );
       if (!res.ok) {
         throw new Error('Network response was not ok');
       }
@@ -47,8 +48,13 @@
       if (descLinkBtn) {
         descLinkBtn.addEventListener('click', async (e) => {
           e.preventDefault();
-          const res = await fetch(`php/description.php?videoID=${videoID}`);
+          const res = await fetch(
+            `/api/description?videoID=${encodeURIComponent(videoID)}`
+          );
+          if (!res.ok) throw new Error('Network response was not ok');
+
           const data = await res.json();
+
           document.getElementById('description-body').textContent =
             data.description || 'No description available.';
           document.getElementById('description-modal').style.display = 'block';

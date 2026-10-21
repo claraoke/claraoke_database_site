@@ -70,7 +70,7 @@
 
   async function loadVideos() {
     try {
-      const res = await fetch('php/videolist.php', { cache: 'no-store' });
+      const res = await fetch('/api/videolist', { cache: 'no-store' });
       if (!res.ok) throw new Error('Network error');
       const data = await res.json();
       renderRows(data.items || []);

@@ -127,7 +127,9 @@
           <script defer>
             async function fetchUpdateTime() {
               try {
-                const res = await fetch('php/db_time.php');
+                const res = await fetch('data/db-updated.json', {
+                  cache: 'no-store',
+                });
                 const data = await res.json();
 
                 // Parse the UTC time string
